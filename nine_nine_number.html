@@ -1,0 +1,329 @@
+<!DOCTYPE>
+
+<head>
+    <style type="text/css">
+    td {
+        border-style: solid;
+        border-width: 1px;
+        text-align: center;
+        width: 30px
+    }
+
+    .left {
+        border-left: thick double #ff0000;
+    }
+
+    .right {
+        border-right: thick double #ff0000;
+    }
+
+    .top {
+        border-top: thick double #ff0000;
+    }
+
+    .bottom {
+        border-bottom: thick double #ff0000;
+    }
+    </style>
+</head>
+
+<body>
+    <table id='italbe'></table>
+</body>
+<script type="text/javascript">
+// var numberstr = [0, 0, 0, 5, 0, 9, 3, 8, 0,
+//     4, 0, 8, 6, 0, 0, 0, 5, 0,
+//     0, 0, 0, 0, 0, 0, 0, 0, 2,
+//     6, 0, 0, 0, 7, 1, 2, 0, 4,
+//     0, 7, 1, 2, 0, 4, 0, 6, 0,
+//     0, 4, 0, 0, 0, 0, 0, 0, 8,
+//     0, 6, 0, 0, 0, 0, 0, 0, 0,
+//     5, 0, 9, 0, 6, 3, 0, 0, 0,
+//     1, 0, 0, 0, 9, 0, 6, 4, 0
+// ]
+
+var numberstr = [0, 0, 5, 3, 0, 0, 0, 0, 0,
+    8, 0, 0, 0, 0, 0, 0, 2, 0,
+    0, 7, 0, 0, 1, 0, 5, 0, 0,
+    4, 0, 0, 0, 0, 5, 3, 0, 0,
+    0, 1, 0, 0, 7, 0, 0, 0, 6,
+    0, 0, 3, 2, 0, 0, 0, 8, 0,
+    0, 6, 0, 5, 0, 0, 0, 0, 9,
+    0, 0, 4, 0, 0, 0, 0, 3, 0,
+    0, 0, 0, 0, 0, 9, 7, 0, 0
+]
+
+//小九宫的位置
+var nines = [
+    [
+        [0, 0],
+        [2, 2]
+    ],
+    [
+        [0, 3],
+        [2, 5]
+    ],
+    [
+        [0, 6],
+        [2, 8]
+    ],
+    [
+        [3, 0],
+        [5, 2]
+    ],
+    [
+        [3, 3],
+        [5, 5]
+    ],
+    [
+        [3, 6],
+        [5, 8]
+    ],
+    [
+        [6, 0],
+        [8, 2]
+    ],
+    [
+        [6, 3],
+        [8, 5]
+    ],
+    [
+        [6, 6],
+        [8, 8]
+    ]
+]
+
+if (numberstr.length != 81) {
+    alert('长度错误')
+}
+
+var numberarr = []
+
+//分别从横向、纵向、小九宫格位置，根据已确定的数推测空位数据
+function refreshData() {
+    for (var i = 0; i < 81; i++) {
+        if (numberstr[i] != 0) {
+            numberarr[i] = numberstr[i]
+            continue
+        }
+
+        var nums = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        var row = parseInt(i / 9);
+        for (var ii = row * 9; ii < (row + 1) * 9; ii++) {
+            if (numberstr[ii] == 0 || i == ii) {
+                continue
+            }
+            var index = nums.indexOf(numberstr[ii])
+            if (index == -1) {
+                continue
+            }
+            nums.splice(index, 1)
+        }
+
+        if (nums.length == 1) {
+            numberstr[i] = nums[0]
+            console.log('行构造：', i, numberstr[i])
+            refreshData()
+            return
+        }
+
+        var col = i % 9
+        for (var ii = col; ii < 81; ii += 9) {
+            if (numberstr[ii] == 0 || i == ii) {
+                continue
+            }
+            var index = nums.indexOf(numberstr[ii])
+            if (index == -1) {
+                continue
+            }
+            nums.splice(index, 1)
+        }
+
+        if (nums.length == 1) {
+            numberstr[i] = nums[0]
+            console.log('列构造：', i, numberstr[i])
+            refreshData()
+            return
+        }
+
+        var nine = (getnine(row, col))
+        for (var n = nine[0][0]; n <= nine[1][0]; n++) {
+            for (var m = nine[0][1]; m <= nine[1][1]; m++) {
+                ii = (n * 9 + m)
+                if (numberstr[ii] == 0 || i == ii) {
+                    continue
+                }
+                var index = nums.indexOf(numberstr[ii])
+                if (index == -1) {
+                    continue
+                }
+                nums.splice(index, 1)
+            }
+        }
+
+        if (nums.length == 1) {
+            numberstr[i] = nums[0]
+            console.log('九格构造：', i, numberstr[i])
+            refreshData()
+            return
+        }
+
+        numberarr[i] = nums
+    }
+
+    checkOne()
+}
+
+function getnine(row, col) {
+    for (var i = 0; i < nines.length; i++) {
+        if (row >= nines[i][0][0] && row <= nines[i][1][0] &&
+            col >= nines[i][0][1] && col <= nines[i][1][1]) {
+            return nines[i]
+        }
+    }
+}
+
+//分别从横向、纵向、小九宫格位置，空位数据中取唯一值设置
+function checkOne() {
+    for (var i = 0; i < 81; i++) {
+        if (typeof numberarr[i] == 'number') {
+            continue
+        }
+        if (numberarr[i].length == 1) {
+            continue
+        }
+
+        var nums = numberarr[i]
+
+        var row = parseInt(i / 9);
+        for (var j = 0; j < nums.length; j++) {
+            var ii = 0
+            for (ii = row * 9; ii < (row + 1) * 9; ii++) {
+                if (ii == i || typeof numberarr[ii] == 'number') {
+                    continue
+                }
+
+                var index = numberarr[ii].indexOf(nums[j])
+                if (index > -1) {
+                    break
+                }
+
+            }
+
+            if (ii == (row + 1) * 9) {
+                numberstr[i] = nums[j]
+                console.log('行检查：', i, numberarr[i], numberstr[i])
+                refreshData()
+                return
+            }
+
+            var col = i % 9
+            for (ii = col; ii < 81; ii += 9) {
+                if (ii == i || typeof numberarr[ii] == 'number') {
+                    continue
+                }
+
+                var index = numberarr[ii].indexOf(nums[j])
+                if (index > -1) {
+                    break
+                }
+
+            }
+
+            if (ii >= 81) {
+                numberstr[i] = nums[j]
+                console.log('列检查：', i, numberarr[i], numberstr[i])
+                refreshData()
+                return
+            }
+
+            var nine = (getnine(row, col))
+            for (var n = nine[0][0]; n <= nine[1][0]; n++) {
+                for (var m = nine[0][1]; m <= nine[1][1]; m++) {
+                    ii = (n * 9 + m)
+                    if (ii == i || typeof numberarr[ii] == 'number') {
+                        continue
+                    }
+
+                    var index = numberarr[ii].indexOf(nums[j])
+                    if (index > -1) {
+                        break
+                    }
+                }
+            }
+
+            if (ii > (nine[1][0] + nine[1][1] * 9)) {
+                numberstr[i] = nums[j]
+                console.log('九格检查：', i, numberarr[i], numberstr[i])
+                refreshData()
+                return
+            }
+        }
+    }
+
+    sout()
+}
+
+[]
+
+function sout() {
+    //从行、列数据中唯一一个数确定
+    var tr = []
+    var td = []
+    for (var i = 0; i < 9; i++) {
+        for (var j = 0; j < 9; j++) {
+
+            var nine = getnine(i, j)
+            var cls = []
+            if (i == nine[0][0]) {
+                cls.push('top')
+            }
+            if (i == nine[1][0]) {
+                cls.push('bottom')
+            }
+            if (j == nine[0][1]) {
+                cls.push('left')
+            }
+            if (j == nine[1][1]) {
+                cls.push('right')
+            }
+
+            ii = (i * 9 + j)
+            if (typeof numberarr[ii] == 'number') {
+                td.push('<td index=' + ii + ' class="' + cls.join(' ') + '">' + numberarr[ii] + '</td>')
+            } else {
+                td.push('<td index=' + ii + ' class="' + cls.join(' ') + '"' + ' nums="' + numberarr[ii].join(',') + '" onclick=selectOption(this)></td>')
+            }
+
+            if (td.length == 9) {
+                tr.push('<tr>')
+                tr.push(td.join(''))
+                tr.push('</tr>')
+                td = []
+            }
+        }
+    }
+    document.getElementById('italbe').innerHTML = tr.join('')
+
+    console.log(numberarr)
+}
+
+refreshData()
+
+function selectOption(obj) {
+    var nums = obj.getAttribute('nums')
+    var num = window.prompt(nums, "请在此输入选择数字。");
+    if (num.length != 1 || nums.indexOf(num) == -1) {
+        alert('数字错误')
+        return;
+    }
+
+    obj.innerHTML = num
+    var index = parseInt(obj.getAttribute('index'))
+    numberstr[index] = parseInt(num)
+
+    refreshData()
+}
+</script>
+
+</html>
